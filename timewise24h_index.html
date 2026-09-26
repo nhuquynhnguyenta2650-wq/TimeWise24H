@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIMEWISE24H — 24H Wallet</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7f8fa;
+    color: #202124;
+  }
+  .wrap { max-width: 1050px; margin: 0 auto; padding: 28px 18px 40px; }
+  .hero {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 5px 24px rgba(0,0,0,.07);
+  }
+  h1 { margin: 0 0 8px; font-size: 34px; letter-spacing: .5px; }
+  .sub { margin: 0 auto 24px; max-width: 650px; color: #666; line-height: 1.55; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .field {
+    background: #f7f8fa;
+    border: 1px solid #e2e5e9;
+    border-radius: 14px;
+    padding: 14px;
+    text-align: left;
+  }
+  label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+  input {
+    width: 100%;
+    border: 1px solid #cfd3d8;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size: 16px;
+    background: white;
+  }
+  input:focus { outline: 2px solid #b8c7ff; border-color: #8097ff; }
+  .actions { margin-top: 22px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .saveArea { margin-top: 18px; padding-top: 18px; border-top: 1px solid #eceef1; }
+  .saveStatus { min-height: 20px; margin: 0 0 10px; text-align: center; font-size: 13px; color: #666; }
+  .savedInfo { display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px; color:#666; }
+  .savedDot { width:8px; height:8px; border-radius:50%; background:#63b89c; display:inline-block; }
+  .history { margin-top: 22px; display:none; }
+  .history h3 { margin:0 0 10px; font-size:16px; }
+  .historyList { display:grid; gap:8px; }
+  .historyItem { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; border:1px solid #e2e5e9; border-radius:12px; background:#fafbfc; font-size:13px; }
+  .historyItem button { padding:7px 12px; font-size:12px; }
+  .emptyHistory { color:#777; font-size:13px; padding:8px 0; }
+  .storageNote { text-align:center; margin-top:9px; font-size:12px; color:#888; }
+  button {
+    border: 0; border-radius: 999px; padding: 12px 22px; font-size: 15px;
+    font-weight: 700; cursor: pointer;
+  }
+  .primary { background: #202124; color: white; }
+  .secondary { background: #e9ebef; color: #202124; }
+  .result {
+    display: none;
+    margin-top: 24px;
+    background: white;
+    border-radius: 22px;
+    padding: 26px;
+    box-shadow: 0 5px 24px rgba(0,0,0,.07);
+  }
+  .status {
+    text-align: center; font-weight: 700; padding: 11px 14px;
+    border-radius: 12px; margin-bottom: 22px;
+  }
+  .ok { background: #e9f7ef; color: #176b3a; }
+  .warn { background: #fff4df; color: #805400; }
+  .bad { background: #fdecec; color: #a52222; }
+  .resultGrid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center;
+  }
+  .chartBox { display: flex; justify-content: center; }
+  canvas { max-width: 360px; max-height: 360px; }
+  .summary h2 { margin-top: 0; }
+  .barRow { margin: 13px 0; }
+  .barTop { display:flex; justify-content:space-between; font-size: 14px; margin-bottom: 6px; }
+  .bar { height: 9px; background: #eceef1; border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; background: #202124; border-radius: 99px; }
+  .note { color:#666; font-size:13px; line-height:1.5; margin-top:18px; }
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+    .resultGrid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    h1 { font-size: 28px; }
+    .grid { grid-template-columns: 1fr; }
+    .hero, .result { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>⏰ 24H WALLET</h1>
+    <p class="sub">
+      Track how you spend your 24 hours. Enter your estimated daily time,
+      then calculate your personal time snapshot.
+    </p>
+
+    <div class="grid">
+      <div class="field"><label>📚 Study</label><input id="study" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>💼 Work</label><input id="work" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>😴 Sleep</label><input id="sleep" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>📱 Social Media</label><input id="social" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>🎮 Entertainment</label><input id="entertainment" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>🍽️ Meals & Personal Care</label><input id="personal" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>🚌 Travel</label><input id="travel" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>🏃 Exercise</label><input id="exercise" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+      <div class="field"><label>✨ Other</label><input id="other" type="number" min="0" max="24" step="0.5" placeholder="hours"></div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" onclick="calculate(true)">CALCULATE MY 24 HOURS →</button>
+      <button class="secondary" onclick="saveWallet()">SAVE MY DAY</button>
+      <button class="secondary" onclick="resetWallet()">RESET</button>
+    </div>
+
+    <div class="saveArea">
+      <p id="saveStatus" class="saveStatus"></p>
+      <div class="savedInfo" id="savedInfo"></div>
+      <div class="actions" style="margin-top:12px">
+        <button class="secondary" onclick="loadLatest()">LOAD SAVED DATA</button>
+        <button class="secondary" onclick="showHistory()">VIEW HISTORY</button>
+        <button class="secondary" onclick="clearSaved()">CLEAR SAVED DATA</button>
+      </div>
+      <p class="storageNote">Your saved data stays in this browser on this device. It is not sent to the project team.</p>
+    </div>
+
+    <div class="history" id="history">
+      <h3>YOUR SAVED DAYS</h3>
+      <div class="historyList" id="historyList"></div>
+    </div>
+  </section>
+
+  <section class="result" id="result">
+    <div id="status" class="status"></div>
+    <div class="resultGrid">
+      <div class="chartBox">
+        <canvas id="pie" width="360" height="360"></canvas>
+      </div>
+      <div class="summary">
+        <h2>YOUR TIME SNAPSHOT</h2>
+        <div id="bars"></div>
+        <p class="note">
+          This is a self-reflection tool. Your results show how your estimated
+          daily time is distributed; they are not a psychological diagnosis.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const fields = [
+  ["study","Study"], ["work","Work"], ["sleep","Sleep"],
+  ["social","Social Media"], ["entertainment","Entertainment"],
+  ["personal","Meals & Personal Care"], ["travel","Travel"],
+  ["exercise","Exercise"], ["other","Other"]
+];
+
+function getData() {
+  return fields.map(([id,name]) => ({
+    name,
+    value: Math.max(0, Number(document.getElementById(id).value) || 0)
+  }));
+}
+
+function calculate(shouldSave = false) {
+  const data = getData();
+  const total = data.reduce((s,d) => s + d.value, 0);
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
+  result.style.display = "block";
+
+  if (Math.abs(total - 24) < 0.001) {
+    status.className = "status ok";
+    status.textContent = "✓ Your day adds up to 24 hours.";
+  } else if (total < 24) {
+    status.className = "status warn";
+    status.textContent = `You have ${(24-total).toFixed(1)} hour(s) unallocated.`;
+  } else {
+    status.className = "status bad";
+    status.textContent = `You entered ${(total-24).toFixed(1)} hour(s) too many. Adjust your entries to reach 24 hours.`;
+  }
+
+  drawPie(data);
+  renderBars(data, total);
+  if (shouldSave) saveWallet(false);
+  result.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function drawPie(data) {
+  const canvas = document.getElementById("pie");
+  const ctx = canvas.getContext("2d");
+  const cx = canvas.width/2, cy = canvas.height/2, r = 145;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const nonzero = data.filter(d => d.value > 0);
+  const total = nonzero.reduce((s,d)=>s+d.value,0);
+
+  if (!total) {
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle="#e5e7eb"; ctx.fill();
+    ctx.fillStyle="#555"; ctx.font="16px Arial"; ctx.textAlign="center";
+    ctx.fillText("Enter your hours",cx,cy);
+    return;
+  }
+
+  let angle = -Math.PI/2;
+  const palette = ["#6c8cff","#63b89c","#f2b84b","#ef7d7d","#9b7ede","#5bb7d4","#e79a62","#7bbf65","#9aa0a6"];
+
+  nonzero.forEach((d,i)=>{
+    const slice = (d.value/total)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.closePath();
+    ctx.fillStyle=palette[i % palette.length];
+    ctx.fill();
+    angle += slice;
+  });
+
+  // center cutout
+  ctx.beginPath(); ctx.arc(cx,cy,65,0,Math.PI*2);
+  ctx.fillStyle="#fff"; ctx.fill();
+  ctx.fillStyle="#202124"; ctx.textAlign="center";
+  ctx.font="700 22px Arial"; ctx.fillText("24H",cx,cy-2);
+  ctx.font="13px Arial"; ctx.fillStyle="#666"; ctx.fillText("YOUR DAY",cx,cy+18);
+}
+
+function renderBars(data,total) {
+  const container=document.getElementById("bars");
+  container.innerHTML="";
+  data.filter(d=>d.value>0).sort((a,b)=>b.value-a.value).forEach(d=>{
+    const pct = total ? (d.value/total)*100 : 0;
+    const row=document.createElement("div");
+    row.className="barRow";
+    row.innerHTML = `
+      <div class="barTop"><span>${d.name}</span><strong>${d.value}h · ${pct.toFixed(1)}%</strong></div>
+      <div class="bar"><div class="fill" style="width:${Math.min(pct,100)}%"></div></div>`;
+    container.appendChild(row);
+  });
+}
+
+const STORAGE_KEY = "timewise24h_wallet_v2";
+const HISTORY_KEY = "timewise24h_wallet_history_v2";
+
+function getCurrentValues() {
+  const values = {};
+  fields.forEach(([id]) => {
+    values[id] = Math.max(0, Number(document.getElementById(id).value) || 0);
+  });
+  return values;
+}
+
+function setValues(values) {
+  fields.forEach(([id]) => {
+    document.getElementById(id).value = values[id] ?? "";
+  });
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleString(undefined, {
+    year: "numeric", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
+}
+
+function saveWallet(showMessage = true) {
+  const values = getCurrentValues();
+  const total = Object.values(values).reduce((sum, v) => sum + v, 0);
+  const entry = { savedAt: new Date().toISOString(), values, total };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entry));
+
+  let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  history.unshift(entry);
+  history = history.slice(0, 7);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+
+  updateSavedInfo(entry);
+  if (showMessage) showSaveStatus("✓ Your time data has been saved on this device.");
+  renderHistory();
+}
+
+function loadLatest() {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  if (!saved) {
+    showSaveStatus("No saved data found on this device.");
+    return;
+  }
+  setValues(saved.values);
+  calculate(false);
+  updateSavedInfo(saved);
+  showSaveStatus("✓ Your latest saved day has been loaded.");
+}
+
+function updateSavedInfo(entry) {
+  const info = document.getElementById("savedInfo");
+  info.innerHTML = `<span class="savedDot"></span><span>Last saved: ${formatDate(entry.savedAt)}</span>`;
+}
+
+function showSaveStatus(message) {
+  const el = document.getElementById("saveStatus");
+  el.textContent = message;
+  clearTimeout(window._saveTimer);
+  window._saveTimer = setTimeout(() => { el.textContent = ""; }, 4000);
+}
+
+function showHistory() {
+  const section = document.getElementById("history");
+  section.style.display = section.style.display === "none" ? "block" : "none";
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById("historyList");
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  if (!history.length) {
+    list.innerHTML = `<div class="emptyHistory">No saved days yet.</div>`;
+    return;
+  }
+  list.innerHTML = history.map((entry, index) => `
+    <div class="historyItem">
+      <span><strong>${index === 0 ? "Latest" : "Saved day"}</strong><br>${formatDate(entry.savedAt)} · ${entry.total.toFixed(1)}h entered</span>
+      <button class="secondary" onclick="loadHistoryItem(${index})">LOAD</button>
+    </div>
+  `).join("");
+}
+
+function loadHistoryItem(index) {
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  const entry = history[index];
+  if (!entry) return;
+  setValues(entry.values);
+  calculate(false);
+  updateSavedInfo(entry);
+  showSaveStatus("✓ Saved day loaded.");
+}
+
+function clearSaved() {
+  if (!localStorage.getItem(STORAGE_KEY) && !localStorage.getItem(HISTORY_KEY)) {
+    showSaveStatus("There is no saved data to clear.");
+    return;
+  }
+  if (!confirm("Clear all saved 24H Wallet data from this browser?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(HISTORY_KEY);
+  document.getElementById("savedInfo").innerHTML = "";
+  document.getElementById("historyList").innerHTML = `<div class="emptyHistory">No saved days yet.</div>`;
+  showSaveStatus("Saved data cleared from this device.");
+}
+
+function restoreSavedState() {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  if (saved) updateSavedInfo(saved);
+  renderHistory();
+}
+
+function resetWallet() {
+  fields.forEach(([id])=>document.getElementById(id).value="");
+  document.getElementById("result").style.display="none";
+}
+
+restoreSavedState();
+</script>
+</body>
+</html>
